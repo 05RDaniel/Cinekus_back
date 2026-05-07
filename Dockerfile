@@ -7,8 +7,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     zip
 
-# Instalar extensión PostgreSQL
-RUN docker-php-ext-install pdo pdo_pgsql
+# Instalar extensiones de base de datos
+RUN docker-php-ext-install pdo pdo_pgsql pdo_mysql
 
 # Instalar Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
