@@ -17,7 +17,7 @@ class CoreDataSeeder extends Seeder
         $admin = User::query()->updateOrCreate(
             ['email' => 'admin@proyectocine.local'],
             [
-                'nombre' => 'Admin',
+                'nombre' => 'admin',
                 'password' => Hash::make('admin123'),
                 'rol' => 'ADMIN',
             ]
