@@ -6,10 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Movies\CreateMovieRequest;
 use App\Http\Requests\Movies\UpdateMovieRequest;
 use App\Models\Pelicula;
+use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 
 class MoviesController extends Controller
 {
+    private function tmdbClient(array $headers): PendingRequest
+    {
+        $disableSslVerify = filter_var(env('TMDB_DISABLE_SSL_VERIFY', false), FILTER_VALIDATE_BOOL);
+        $client = Http::withHeaders($headers);
+        if ($disableSslVerify) {
+            $client = $client->withOptions(['verify' => false]);
+        }
+        return $client;
+    }
+
     public function index()
     {
         return response()->json(Pelicula::query()->orderByDesc('id')->get());
@@ -71,12 +83,16 @@ class MoviesController extends Controller
             $genresBase .= '&api_key='.urlencode($apiKey);
         }
 
-        $popularResponse = Http::withHeaders($headers)->get($base);
+        try {
+            $popularResponse = $this->tmdbClient($headers)->get($base);
+        } catch (ConnectionException) {
+            return response()->json(['message' => 'No se pudo conectar con TMDB (SSL o red).', 'details' => null], 502);
+        }
         if (!$popularResponse->ok()) {
             return response()->json(['message' => 'No se pudo obtener peliculas populares de TMDB', 'details' => null], 502);
         }
 
-        $genreResponse = Http::withHeaders($headers)->get($genresBase);
+        $genreResponse = $this->tmdbClient($headers)->get($genresBase);
         $genreMap = collect($genreResponse->json('genres', []))->mapWithKeys(fn ($g) => [$g['id'] => $g['name']]);
 
         $results = collect($popularResponse->json('results', []))
@@ -115,7 +131,11 @@ class MoviesController extends Controller
         if (!$readToken && $apiKey) {
             $genreUrl .= '&api_key='.urlencode($apiKey);
         }
-        $genreResponse = Http::withHeaders($headers)->get($genreUrl);
+        try {
+            $genreResponse = $this->tmdbClient($headers)->get($genreUrl);
+        } catch (ConnectionException) {
+            return response()->json(['message' => 'No se pudo conectar con TMDB (SSL o red).', 'details' => null], 502);
+        }
         $genreMap = collect($genreResponse->json('genres', []))->mapWithKeys(fn ($g) => [$g['id'] => $g['name']]);
 
         $movies = collect();
@@ -125,7 +145,11 @@ class MoviesController extends Controller
             if (!$readToken && $apiKey) {
                 $url .= '&api_key='.urlencode($apiKey);
             }
-            $response = Http::withHeaders($headers)->get($url);
+            try {
+                $response = $this->tmdbClient($headers)->get($url);
+            } catch (ConnectionException) {
+                return response()->json(['message' => 'No se pudo conectar con TMDB (SSL o red).', 'details' => null], 502);
+            }
             if (!$response->ok()) {
                 return response()->json(['message' => 'No se pudieron obtener peliculas de TMDB', 'details' => null], 502);
             }
