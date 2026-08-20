@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Reserva extends Model
 {
-    protected $table = 'reservas';
+    protected $table = 'bookings';
 
     protected $fillable = [
-        'usuario_id',
-        'sesion_id',
-        'fecha_reserva',
+        'user_id',
+        'session_id',
+        'created_at',
+        'status_id',
     ];
 
     public $timestamps = false;
@@ -21,22 +22,22 @@ class Reserva extends Model
     protected function casts(): array
     {
         return [
-            'fecha_reserva' => 'datetime',
+            'created_at' => 'datetime',
         ];
     }
 
     public function usuario(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'usuario_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function sesion(): BelongsTo
     {
-        return $this->belongsTo(Sesion::class, 'sesion_id');
+        return $this->belongsTo(Sesion::class, 'session_id');
     }
 
     public function asientos(): BelongsToMany
     {
-        return $this->belongsToMany(Asiento::class, 'reserva_asientos', 'reserva_id', 'asiento_id');
+        return $this->belongsToMany(Asiento::class, 'booking_seat', 'booking_id', 'seat_id');
     }
 }

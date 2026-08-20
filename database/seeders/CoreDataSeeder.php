@@ -8,39 +8,63 @@ use App\Models\Sala;
 use App\Models\Sesion;
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 
 class CoreDataSeeder extends Seeder
 {
     public function run(): void
     {
+        $this->call(LanguagesAndGenresSeeder::class);
+
+        DB::table('roles')->updateOrInsert(['name' => 'ADMIN'], ['name' => 'ADMIN']);
+        DB::table('roles')->updateOrInsert(['name' => 'USER'], ['name' => 'USER']);
+
+        $adminRoleId = DB::table('roles')->where('name', 'ADMIN')->value('id');
+        $userRoleId = DB::table('roles')->where('name', 'USER')->value('id');
+
+        DB::table('booking_statuses')->updateOrInsert(['name' => 'confirmed'], ['name' => 'confirmed']);
+        DB::table('booking_statuses')->updateOrInsert(['name' => 'cancelled'], ['name' => 'cancelled']);
+
+        DB::table('seat_types')->updateOrInsert(['name' => 'standard'], ['name' => 'standard']);
+        $standardSeatTypeId = DB::table('seat_types')->where('name', 'standard')->value('id');
+
         $admin = User::query()->updateOrCreate(
             ['email' => 'admin@proyectocine.local'],
             [
-                'nombre' => 'admin',
-                'password' => Hash::make('admin123'),
-                'rol' => 'ADMIN',
+                'username' => 'admin',
+                'password' => 'admin123',
             ]
         );
 
-        User::query()->updateOrCreate(
+        $regularUser = User::query()->updateOrCreate(
             ['email' => 'user@proyectocine.local'],
             [
-                'nombre' => 'Usuario',
-                'password' => Hash::make('user123'),
-                'rol' => 'USER',
+                'username' => 'user',
+                'password' => 'user123',
             ]
         );
 
-        $sala1 = Sala::query()->updateOrCreate(['id' => 1], ['nombre' => 'Sala 1', 'filas' => 5, 'columnas' => 8]);
-        $sala2 = Sala::query()->updateOrCreate(['id' => 2], ['nombre' => 'Sala 2', 'filas' => 6, 'columnas' => 10]);
+        DB::table('users_roles')->updateOrInsert(
+            ['user_id' => $admin->id, 'rol_id' => $adminRoleId],
+            ['user_id' => $admin->id, 'rol_id' => $adminRoleId]
+        );
+        DB::table('users_roles')->updateOrInsert(
+            ['user_id' => $regularUser->id, 'rol_id' => $userRoleId],
+            ['user_id' => $regularUser->id, 'rol_id' => $userRoleId]
+        );
 
-        foreach ([$sala1, $sala2] as $sala) {
-            for ($fila = 1; $fila <= $sala->filas; $fila++) {
-                for ($numero = 1; $numero <= $sala->columnas; $numero++) {
+        $room1 = Sala::query()->updateOrCreate(['id' => 1], ['name' => 'Sala 1']);
+        $room2 = Sala::query()->updateOrCreate(['id' => 2], ['name' => 'Sala 2']);
+
+        foreach ([$room1, $room2] as $room) {
+            $rows = $room->id === 1 ? 5 : 6;
+            $columns = $room->id === 1 ? 8 : 10;
+
+            for ($row = 1; $row <= $rows; $row++) {
+                for ($number = 1; $number <= $columns; $number++) {
                     Asiento::query()->updateOrCreate(
-                        ['sala_id' => $sala->id, 'fila' => $fila, 'numero' => $numero],
-                        []
+                        ['room_id' => $room->id, 'seat_row' => $row, 'number' => $number],
+                        ['seat_type_id' => $standardSeatTypeId]
                     );
                 }
             }
@@ -49,44 +73,50 @@ class CoreDataSeeder extends Seeder
         $interstellar = Pelicula::query()->updateOrCreate(
             ['id' => 1],
             [
-                'titulo' => 'Interstellar',
-                'sinopsis' => 'Un grupo de exploradores viaja a traves de un agujero de gusano.',
-                'duracion' => 169,
-                'genero' => 'Ciencia Ficcion',
-                'imagen' => 'https://picsum.photos/seed/interstellar/400/600',
-                'fecha_estreno' => '2014-11-07',
+                'title' => 'Interstellar',
+                'sinopsis' => 'Un grupo de exploradores viaja a través de un agujero de gusano.',
+                'duration' => 169,
+                'release_year' => 2014,
+                'image' => 'https://picsum.photos/seed/interstellar/400/600',
             ]
         );
 
         $dune = Pelicula::query()->updateOrCreate(
             ['id' => 2],
             [
-                'titulo' => 'Dune',
+                'title' => 'Dune',
                 'sinopsis' => 'El heredero de una familia noble lucha por el control de Arrakis.',
-                'duracion' => 155,
-                'genero' => 'Aventura',
-                'imagen' => 'https://picsum.photos/seed/dune/400/600',
-                'fecha_estreno' => '2021-10-22',
+                'duration' => 155,
+                'release_year' => 2021,
+                'image' => 'https://picsum.photos/seed/dune/400/600',
             ]
         );
 
+        $spanishId = DB::table('languages')->where('code', 'es')->value('id');
+
         Sesion::query()->updateOrCreate(['id' => 1], [
-            'pelicula_id' => $interstellar->id,
-            'sala_id' => $sala1->id,
-            'fecha' => '2026-04-10',
-            'hora' => '18:00',
+            'movie_id' => $interstellar->id,
+            'room_id' => $room1->id,
+            'language_id' => $spanishId,
+            'start_date' => '2026-04-10',
+            'start_time' => '18:00:00',
+            'session_type' => '2d',
         ]);
         Sesion::query()->updateOrCreate(['id' => 2], [
-            'pelicula_id' => $interstellar->id,
-            'sala_id' => $sala1->id,
-            'fecha' => '2026-04-10',
-            'hora' => '21:30',
+            'movie_id' => $interstellar->id,
+            'room_id' => $room1->id,
+            'language_id' => $spanishId,
+            'start_date' => '2026-04-10',
+            'start_time' => '21:30:00',
+            'session_type' => '2d',
         ]);
         Sesion::query()->updateOrCreate(['id' => 3], [
-            'pelicula_id' => $dune->id,
-            'sala_id' => $sala2->id,
-            'fecha' => '2026-04-11',
-            'hora' => '20:00',
+            'movie_id' => $dune->id,
+            'room_id' => $room2->id,
+            'language_id' => $spanishId,
+            'start_date' => '2026-04-11',
+            'start_time' => '20:00:00',
+            'session_type' => '2d',
         ]);
     }
 }

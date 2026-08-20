@@ -8,23 +8,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Asiento extends Model
 {
-    protected $table = 'asientos';
+    protected $table = 'seats';
 
     protected $fillable = [
-        'sala_id',
-        'fila',
-        'numero',
+        'room_id',
+        'seat_row',
+        'number',
+        'seat_type_id',
     ];
 
     public $timestamps = false;
 
     public function sala(): BelongsTo
     {
-        return $this->belongsTo(Sala::class, 'sala_id');
+        return $this->belongsTo(Sala::class, 'room_id');
     }
 
     public function reservas(): BelongsToMany
     {
-        return $this->belongsToMany(Reserva::class, 'reserva_asientos', 'asiento_id', 'reserva_id');
+        return $this->belongsToMany(Reserva::class, 'booking_seat', 'seat_id', 'booking_id');
     }
 }

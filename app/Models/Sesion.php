@@ -8,29 +8,50 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sesion extends Model
 {
-    protected $table = 'sesiones';
+    protected $table = 'sessions';
 
     protected $fillable = [
-        'pelicula_id',
-        'sala_id',
-        'fecha',
-        'hora',
+        'movie_id',
+        'room_id',
+        'language_id',
+        'start_date',
+        'start_time',
+        'session_type',
+        'subtitles',
     ];
+
+    public const PRIMARY_LANGUAGE_CODE = 'es';
+
+    public const SESSION_TYPES = ['2d', '3d', '4d'];
+
+    public const SUBTITLE_OPTIONS = ['none', 'es', 'en'];
 
     public $timestamps = false;
 
+    protected function casts(): array
+    {
+        return [
+            'start_date' => 'date',
+        ];
+    }
+
     public function pelicula(): BelongsTo
     {
-        return $this->belongsTo(Pelicula::class, 'pelicula_id');
+        return $this->belongsTo(Pelicula::class, 'movie_id');
     }
 
     public function sala(): BelongsTo
     {
-        return $this->belongsTo(Sala::class, 'sala_id');
+        return $this->belongsTo(Sala::class, 'room_id');
+    }
+
+    public function language(): BelongsTo
+    {
+        return $this->belongsTo(Language::class, 'language_id');
     }
 
     public function reservas(): HasMany
     {
-        return $this->hasMany(Reserva::class, 'sesion_id');
+        return $this->hasMany(Reserva::class, 'session_id');
     }
 }

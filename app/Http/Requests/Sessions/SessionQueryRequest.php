@@ -14,7 +14,7 @@ class SessionQueryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'peliculaId' => ['sometimes', 'integer', 'min:1'],
+            'movieId' => ['sometimes', 'integer', 'min:1'],
         ];
     }
 }

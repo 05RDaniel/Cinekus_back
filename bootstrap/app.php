@@ -16,7 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
-            'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
+            'api.jwt' => \App\Http\Middleware\JwtAuthenticate::class,
             'role' => \App\Http\Middleware\RequireRole::class,
         ]);
     })
@@ -35,7 +35,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
             if ($e instanceof ValidationException) {
                 return response()->json([
-                    'message' => 'Datos invalidos',
+                    'message' => 'Datos inválidos',
                     'details' => $e->errors(),
                 ], 422);
             }

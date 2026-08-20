@@ -13,32 +13,33 @@ class SeatsController extends Controller
     {
         $session = Sesion::query()->find($id);
         if (!$session) {
-            return response()->json(['message' => 'Sesion no encontrada', 'details' => null], 404);
+            return response()->json(['message' => 'Sesión no encontrada', 'details' => null], 404);
         }
 
         $occupiedSeatIds = ReservaAsiento::query()
-            ->join('reservas', 'reservas.id', '=', 'reserva_asientos.reserva_id')
-            ->where('reservas.sesion_id', $id)
-            ->pluck('reserva_asientos.asiento_id')
+            ->join('bookings', 'bookings.id', '=', 'booking_seat.booking_id')
+            ->where('bookings.session_id', $id)
+            ->pluck('booking_seat.seat_id')
             ->toArray();
 
         $seats = Asiento::query()
-            ->where('sala_id', $session->sala_id)
-            ->orderBy('fila')
-            ->orderBy('numero')
+            ->where('room_id', $session->room_id)
+            ->orderBy('seat_row')
+            ->orderBy('number')
             ->get()
             ->map(function (Asiento $seat) use ($occupiedSeatIds) {
                 return [
                     'id' => $seat->id,
-                    'sala_id' => $seat->sala_id,
-                    'fila' => $seat->fila,
-                    'numero' => $seat->numero,
-                    'ocupado' => in_array($seat->id, $occupiedSeatIds, true),
+                    'room_id' => $seat->room_id,
+                    'seat_row' => $seat->seat_row,
+                    'number' => $seat->number,
+                    'seat_type_id' => $seat->seat_type_id,
+                    'occupied' => in_array($seat->id, $occupiedSeatIds, true),
                 ];
             });
 
         if ($seats->isEmpty()) {
-            return response()->json(['message' => 'No hay asientos para la sesion indicada', 'details' => null], 404);
+            return response()->json(['message' => 'No hay asientos para la sesión indicada', 'details' => null], 404);
         }
 
         return response()->json($seats);

@@ -7,23 +7,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Sala extends Model
 {
-    protected $table = 'salas';
+    protected $table = 'rooms';
 
     protected $fillable = [
-        'nombre',
-        'filas',
-        'columnas',
+        'name',
     ];
 
     public $timestamps = false;
 
     public function sesiones(): HasMany
     {
-        return $this->hasMany(Sesion::class, 'sala_id');
+        return $this->hasMany(Sesion::class, 'room_id');
     }
 
     public function asientos(): HasMany
     {
-        return $this->hasMany(Asiento::class, 'sala_id');
+        return $this->hasMany(Asiento::class, 'room_id');
     }
 }
