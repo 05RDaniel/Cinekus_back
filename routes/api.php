@@ -14,6 +14,8 @@ use App\Http\Controllers\Api\ReservationsController;
 
 use App\Http\Controllers\Api\RoomsController;
 
+use App\Http\Controllers\Api\SeatTypesController;
+
 use App\Http\Controllers\Api\SeatsController;
 
 use App\Http\Controllers\Api\SessionsController;
@@ -57,6 +59,8 @@ Route::prefix('cine')->group(function (): void {
 
     Route::get('/salas', [RoomsController::class, 'index']);
 
+    Route::get('/tipos-asiento', [SeatTypesController::class, 'index']);
+
     Route::get('/sesiones/{id}/asientos', [SeatsController::class, 'bySession'])->whereNumber('id');
 
 
@@ -79,6 +83,8 @@ Route::prefix('cine')->group(function (): void {
 
         Route::post('/salas', [RoomsController::class, 'store'])->middleware('role:ADMIN');
 
+        Route::get('/salas/{id}', [RoomsController::class, 'show'])->whereNumber('id')->middleware('role:ADMIN');
+
         Route::put('/salas/{id}', [RoomsController::class, 'update'])->whereNumber('id')->middleware('role:ADMIN');
 
         Route::delete('/salas/{id}', [RoomsController::class, 'destroy'])->whereNumber('id')->middleware('role:ADMIN');
@@ -95,7 +101,7 @@ Route::prefix('cine')->group(function (): void {
 
         Route::get('/reservas', [ReservationsController::class, 'index'])->middleware('role:ADMIN');
 
-        Route::post('/reservas', [ReservationsController::class, 'store'])->middleware('role:USER,ADMIN');
+        Route::post('/reservas', [ReservationsController::class, 'store'])->middleware(['api.jwt:required', 'role:USER,ADMIN']);
 
         Route::put('/reservas/{id}', [ReservationsController::class, 'update'])->whereNumber('id')->middleware('role:ADMIN');
 

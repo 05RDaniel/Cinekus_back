@@ -37,7 +37,6 @@ class ReservationsController extends Controller
                 's.start_time as session_start_time',
                 'm.title as movie_title',
                 'u.username as user_username',
-                'u.email as user_email',
             ])
             ->orderByDesc('b.id');
 
@@ -55,9 +54,11 @@ class ReservationsController extends Controller
     {
         $data = $request->validated();
 
-        if (!User::query()->whereKey($data['user_id'])->exists()) {
-            return response()->json(['message' => 'Usuario no encontrado', 'details' => null], 404);
+        $authUser = $request->attributes->get('auth_user') ?? auth('api')->user();
+        if (!$authUser instanceof User) {
+            return response()->json(['message' => 'Debes iniciar sesión para reservar', 'details' => null], 401);
         }
+        $data['user_id'] = $authUser->id;
         $session = Sesion::query()->find($data['session_id']);
         if (!$session) {
             return response()->json(['message' => 'Sesión no encontrada', 'details' => null], 404);
@@ -86,6 +87,14 @@ class ReservationsController extends Controller
         $statusId = $data['status_id'] ?? self::DEFAULT_STATUS_ID;
 
         $reservation = DB::transaction(function () use ($data, $seatIds, $statusId) {
+            $userUpdates = array_filter([
+                'first_name' => isset($data['first_name']) ? trim((string) $data['first_name']) : null,
+                'last_name' => isset($data['last_name']) ? trim((string) $data['last_name']) : null,
+            ], fn ($value) => $value !== null && $value !== '');
+            if ($userUpdates !== []) {
+                User::query()->whereKey($data['user_id'])->update($userUpdates);
+            }
+
             $reservation = Reserva::query()->create([
                 'user_id' => $data['user_id'],
                 'session_id' => $data['session_id'],

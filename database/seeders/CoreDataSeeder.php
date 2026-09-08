@@ -26,12 +26,16 @@ class CoreDataSeeder extends Seeder
         DB::table('booking_statuses')->updateOrInsert(['name' => 'cancelled'], ['name' => 'cancelled']);
 
         DB::table('seat_types')->updateOrInsert(['name' => 'standard'], ['name' => 'standard']);
+        DB::table('seat_types')->updateOrInsert(['name' => 'vip'], ['name' => 'vip']);
+        DB::table('seat_types')->updateOrInsert(['name' => 'accessible'], ['name' => 'accessible']);
         $standardSeatTypeId = DB::table('seat_types')->where('name', 'standard')->value('id');
 
         $admin = User::query()->updateOrCreate(
             ['email' => 'admin@proyectocine.local'],
             [
                 'username' => 'admin',
+                'first_name' => 'Ana',
+                'last_name' => 'García',
                 'password' => 'admin123',
             ]
         );
@@ -40,6 +44,8 @@ class CoreDataSeeder extends Seeder
             ['email' => 'user@proyectocine.local'],
             [
                 'username' => 'user',
+                'first_name' => 'Luis',
+                'last_name' => 'Martínez',
                 'password' => 'user123',
             ]
         );
@@ -53,8 +59,8 @@ class CoreDataSeeder extends Seeder
             ['user_id' => $regularUser->id, 'rol_id' => $userRoleId]
         );
 
-        $room1 = Sala::query()->updateOrCreate(['id' => 1], ['name' => 'Sala 1']);
-        $room2 = Sala::query()->updateOrCreate(['id' => 2], ['name' => 'Sala 2']);
+        $room1 = Sala::query()->updateOrCreate(['id' => 1], ['name' => 'Sala 1', 'seat_rows' => 5, 'seat_cols' => 8]);
+        $room2 = Sala::query()->updateOrCreate(['id' => 2], ['name' => 'Sala 2', 'seat_rows' => 6, 'seat_cols' => 10]);
 
         foreach ([$room1, $room2] as $room) {
             $rows = $room->id === 1 ? 5 : 6;

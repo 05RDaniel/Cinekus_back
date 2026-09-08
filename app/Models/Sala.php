@@ -11,6 +11,8 @@ class Sala extends Model
 
     protected $fillable = [
         'name',
+        'seat_rows',
+        'seat_cols',
     ];
 
     public $timestamps = false;

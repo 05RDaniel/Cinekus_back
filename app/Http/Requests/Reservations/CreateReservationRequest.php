@@ -14,11 +14,13 @@ class CreateReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', 'min:1'],
+            'user_id' => ['sometimes', 'integer', 'min:1'],
             'session_id' => ['required', 'integer', 'min:1'],
             'seat_ids' => ['required', 'array', 'min:1'],
             'seat_ids.*' => ['integer', 'min:1'],
             'status_id' => ['sometimes', 'integer', 'min:1'],
+            'first_name' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'last_name' => ['sometimes', 'nullable', 'string', 'max:255'],
         ];
     }
 }

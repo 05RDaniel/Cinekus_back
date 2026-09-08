@@ -24,6 +24,11 @@ class Asiento extends Model
         return $this->belongsTo(Sala::class, 'room_id');
     }
 
+    public function tipo(): BelongsTo
+    {
+        return $this->belongsTo(SeatType::class, 'seat_type_id');
+    }
+
     public function reservas(): BelongsToMany
     {
         return $this->belongsToMany(Reserva::class, 'booking_seat', 'seat_id', 'booking_id');

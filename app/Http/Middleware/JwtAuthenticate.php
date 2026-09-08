@@ -11,9 +11,9 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class JwtAuthenticate
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next, string $mode = ''): Response
     {
-        if (!filter_var(config('auth.auth_checks_enabled', false), FILTER_VALIDATE_BOOL)) {
+        if (!filter_var(config('auth.auth_checks_enabled', false), FILTER_VALIDATE_BOOL) && $mode !== 'required') {
             return $next($request);
         }
 
