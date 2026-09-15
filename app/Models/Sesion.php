@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -33,6 +34,22 @@ class Sesion extends Model
         return [
             'start_date' => 'date',
         ];
+    }
+
+    public function scopeUpcoming(Builder $query): Builder
+    {
+        $today = now()->toDateString();
+        $nowTime = now()->format('H:i:s');
+
+        return $query->where(function (Builder $upcoming) use ($today, $nowTime) {
+            $upcoming
+                ->whereDate('start_date', '>', $today)
+                ->orWhere(function (Builder $sameDay) use ($today, $nowTime) {
+                    $sameDay
+                        ->whereDate('start_date', $today)
+                        ->whereTime('start_time', '>=', $nowTime);
+                });
+        });
     }
 
     public function pelicula(): BelongsTo

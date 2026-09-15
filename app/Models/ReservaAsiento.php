@@ -12,6 +12,7 @@ class ReservaAsiento extends Model
     protected $fillable = [
         'booking_id',
         'seat_id',
+        'unit_price',
     ];
 
     public $timestamps = false;

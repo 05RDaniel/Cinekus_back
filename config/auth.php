@@ -118,26 +118,4 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Role checks on protected routes (RequireRole middleware)
-    |--------------------------------------------------------------------------
-    |
-    | Set ROLE_CHECKS_ENABLED=true in .env to enforce ADMIN/USER restrictions.
-    |
-    */
-
-    'role_checks_enabled' => env('ROLE_CHECKS_ENABLED', false),
-
-    /*
-    |--------------------------------------------------------------------------
-    | JWT auth on protected routes (api.jwt middleware)
-    |--------------------------------------------------------------------------
-    |
-    | Set AUTH_CHECKS_ENABLED=true in .env to require a valid token on protected routes.
-    |
-    */
-
-    'auth_checks_enabled' => env('AUTH_CHECKS_ENABLED', false),
-
 ];

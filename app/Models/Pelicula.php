@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -30,6 +31,11 @@ class Pelicula extends Model
     public function sesiones(): HasMany
     {
         return $this->hasMany(Sesion::class, 'movie_id');
+    }
+
+    public function scopeWithUpcomingSessions(Builder $query): Builder
+    {
+        return $query->whereHas('sesiones', fn (Builder $sessions) => $sessions->upcoming());
     }
 
     public function genres(): BelongsToMany

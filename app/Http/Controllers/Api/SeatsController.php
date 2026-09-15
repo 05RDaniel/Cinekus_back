@@ -20,6 +20,9 @@ class SeatsController extends Controller
         $occupiedSeatIds = ReservaAsiento::query()
             ->join('bookings', 'bookings.id', '=', 'booking_seat.booking_id')
             ->where('bookings.session_id', $id)
+            ->whereNotIn('bookings.status_id', function ($query) {
+                $query->select('id')->from('booking_statuses')->where('name', 'cancelled');
+            })
             ->pluck('booking_seat.seat_id')
             ->toArray();
 

@@ -14,7 +14,11 @@ use App\Http\Controllers\Api\ReservationsController;
 
 use App\Http\Controllers\Api\RoomsController;
 
+use App\Http\Controllers\Api\PricesController;
+
 use App\Http\Controllers\Api\SeatTypesController;
+
+use App\Http\Controllers\Api\TicketTypesController;
 
 use App\Http\Controllers\Api\SeatsController;
 
@@ -32,6 +36,11 @@ Route::get('/health', fn () => response()->json(['ok' => true, 'service' => 'Pro
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
+
+Route::middleware('api.jwt')->group(function (): void {
+    Route::get('/auth/me', [AuthController::class, 'me']);
+    Route::put('/auth/profile', [AuthController::class, 'updateProfile']);
+});
 
 
 
@@ -60,6 +69,8 @@ Route::prefix('cine')->group(function (): void {
     Route::get('/salas', [RoomsController::class, 'index']);
 
     Route::get('/tipos-asiento', [SeatTypesController::class, 'index']);
+
+    Route::get('/tipos-entrada', [TicketTypesController::class, 'index']);
 
     Route::get('/sesiones/{id}/asientos', [SeatsController::class, 'bySession'])->whereNumber('id');
 
@@ -99,15 +110,37 @@ Route::prefix('cine')->group(function (): void {
 
         Route::delete('/usuarios/{id}', [UsersController::class, 'destroy'])->whereNumber('id')->middleware('role:ADMIN');
 
+        Route::post('/tipos-entrada', [TicketTypesController::class, 'store'])->middleware('role:ADMIN');
+
+        Route::delete('/tipos-entrada/{id}', [TicketTypesController::class, 'destroy'])->whereNumber('id')->middleware('role:ADMIN');
+
+        Route::post('/tipos-asiento', [SeatTypesController::class, 'store'])->middleware('role:ADMIN');
+
+        Route::delete('/tipos-asiento/{id}', [SeatTypesController::class, 'destroy'])->whereNumber('id')->middleware('role:ADMIN');
+
+        Route::get('/precios', [PricesController::class, 'index'])->middleware('role:ADMIN');
+
+        Route::put('/precios', [PricesController::class, 'update'])->middleware('role:ADMIN');
+
         Route::get('/reservas', [ReservationsController::class, 'index'])->middleware('role:ADMIN');
 
-        Route::post('/reservas', [ReservationsController::class, 'store'])->middleware(['api.jwt:required', 'role:USER,ADMIN']);
+        Route::get('/reservas/{id}/detalle', [ReservationsController::class, 'show'])
+            ->whereNumber('id')
+            ->middleware('role:ADMIN');
+
+        Route::post('/reservas', [ReservationsController::class, 'store'])->middleware('role:USER,ADMIN');
 
         Route::put('/reservas/{id}', [ReservationsController::class, 'update'])->whereNumber('id')->middleware('role:ADMIN');
 
         Route::delete('/reservas/{id}', [ReservationsController::class, 'destroy'])->whereNumber('id')->middleware('role:ADMIN');
 
-        Route::get('/reservas/{userId}', [ReservationsController::class, 'byUser'])->whereNumber('userId');
+        Route::post('/reservas/{id}/cancel', [ReservationsController::class, 'cancel'])
+            ->whereNumber('id')
+            ->middleware('role:USER,ADMIN');
+
+        Route::get('/reservas/{userId}', [ReservationsController::class, 'byUser'])
+            ->whereNumber('userId')
+            ->middleware('role:USER,ADMIN');
 
     });
 

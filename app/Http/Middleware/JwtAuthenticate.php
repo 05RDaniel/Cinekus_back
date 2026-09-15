@@ -11,14 +11,10 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class JwtAuthenticate
 {
-    public function handle(Request $request, Closure $next, string $mode = ''): Response
+    public function handle(Request $request, Closure $next): Response
     {
-        if (!filter_var(config('auth.auth_checks_enabled', false), FILTER_VALIDATE_BOOL) && $mode !== 'required') {
-            return $next($request);
-        }
-
         try {
-            $token = $request->bearerToken() ?? $request->query('token');
+            $token = $request->bearerToken();
             if (!$token) {
                 return response()->json(['message' => 'Token no proporcionado', 'details' => null], 401);
             }

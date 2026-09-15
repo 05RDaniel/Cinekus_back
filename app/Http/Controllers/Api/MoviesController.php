@@ -147,11 +147,15 @@ class MoviesController extends Controller
 
     public function index()
     {
-        $movies = Pelicula::query()
+        $query = Pelicula::query()
             ->with(['genres', 'translations.language', 'people'])
-            ->orderByDesc('id')
-            ->get()
-            ->map(fn (Pelicula $movie) => $this->formatMovie($movie));
+            ->orderByDesc('id');
+
+        if (filter_var(request('upcoming'), FILTER_VALIDATE_BOOLEAN)) {
+            $query->withUpcomingSessions();
+        }
+
+        $movies = $query->get()->map(fn (Pelicula $movie) => $this->formatMovie($movie));
 
         return response()->json($movies);
     }
@@ -400,6 +404,7 @@ class MoviesController extends Controller
                     }
                 },
             ])
+            ->withUpcomingSessions()
             ->whereNotNull('image')
             ->where('image', '!=', '')
             ->orderByDesc('rating')

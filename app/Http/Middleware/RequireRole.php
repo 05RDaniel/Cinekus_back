@@ -12,10 +12,6 @@ class RequireRole
 {
     public function handle(Request $request, Closure $next, string ...$roles): Response
     {
-        if (!filter_var(config('auth.auth_checks_enabled', false), FILTER_VALIDATE_BOOL)) {
-            return $next($request);
-        }
-
         /** @var User|null $user */
         $user = $request->attributes->get('auth_user') ?? Auth::guard('api')->user();
         if (!$user) {
@@ -24,10 +20,8 @@ class RequireRole
 
         $request->attributes->set('auth_user', $user);
 
-        if (filter_var(config('auth.role_checks_enabled', false), FILTER_VALIDATE_BOOL)) {
-            if (!in_array($user->rol, $roles, true)) {
-                return response()->json(['message' => 'No tienes permisos para esta acción', 'details' => null], 403);
-            }
+        if (!in_array($user->rol, $roles, true)) {
+            return response()->json(['message' => 'No tienes permisos para esta acción', 'details' => null], 403);
         }
 
         return $next($request);

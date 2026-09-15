@@ -2,9 +2,7 @@
 
 namespace App\Http\Requests\Rooms;
 
-use App\Models\SeatType;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class SaveRoomRequest extends FormRequest
 {
@@ -18,8 +16,6 @@ class SaveRoomRequest extends FormRequest
 
     public function rules(): array
     {
-        $bookable = SeatType::BOOKABLE;
-
         return [
             'name' => ['required', 'string', 'min:1', 'max:100'],
             'rows' => ['required', 'integer', 'min:1', 'max:'.self::MAX_ROWS],
@@ -27,7 +23,7 @@ class SaveRoomRequest extends FormRequest
             'seats' => ['required', 'array', 'min:1'],
             'seats.*.row' => ['required', 'integer', 'min:1'],
             'seats.*.number' => ['required', 'integer', 'min:1'],
-            'seats.*.type' => ['required', 'string', Rule::in($bookable)],
+            'seats.*.type' => ['required', 'string', 'max:50', 'exists:seat_types,name'],
         ];
     }
 

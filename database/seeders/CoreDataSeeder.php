@@ -25,9 +25,13 @@ class CoreDataSeeder extends Seeder
         DB::table('booking_statuses')->updateOrInsert(['name' => 'confirmed'], ['name' => 'confirmed']);
         DB::table('booking_statuses')->updateOrInsert(['name' => 'cancelled'], ['name' => 'cancelled']);
 
-        DB::table('seat_types')->updateOrInsert(['name' => 'standard'], ['name' => 'standard']);
-        DB::table('seat_types')->updateOrInsert(['name' => 'vip'], ['name' => 'vip']);
-        DB::table('seat_types')->updateOrInsert(['name' => 'accessible'], ['name' => 'accessible']);
+        DB::table('ticket_types')->updateOrInsert(['code' => 'adult'], ['code' => 'adult', 'name' => 'Adulto', 'price' => 8]);
+        DB::table('ticket_types')->updateOrInsert(['code' => 'child'], ['code' => 'child', 'name' => 'Niño', 'price' => 5.5]);
+        DB::table('ticket_types')->updateOrInsert(['code' => 'senior'], ['code' => 'senior', 'name' => 'Jubilado', 'price' => 6.5]);
+
+        DB::table('seat_types')->updateOrInsert(['name' => 'standard'], ['name' => 'standard', 'label' => 'Regular', 'price' => 0]);
+        DB::table('seat_types')->updateOrInsert(['name' => 'vip'], ['name' => 'vip', 'label' => 'VIP', 'price' => 2]);
+        DB::table('seat_types')->updateOrInsert(['name' => 'accessible'], ['name' => 'accessible', 'label' => 'Accesible', 'price' => 0]);
         $standardSeatTypeId = DB::table('seat_types')->where('name', 'standard')->value('id');
 
         $admin = User::query()->updateOrCreate(
@@ -59,70 +63,73 @@ class CoreDataSeeder extends Seeder
             ['user_id' => $regularUser->id, 'rol_id' => $userRoleId]
         );
 
-        $room1 = Sala::query()->updateOrCreate(['id' => 1], ['name' => 'Sala 1', 'seat_rows' => 5, 'seat_cols' => 8]);
-        $room2 = Sala::query()->updateOrCreate(['id' => 2], ['name' => 'Sala 2', 'seat_rows' => 6, 'seat_cols' => 10]);
+        $roomLayouts = [
+            ['id' => 1, 'name' => 'Sala 1', 'seat_rows' => 5, 'seat_cols' => 8],
+            ['id' => 2, 'name' => 'Sala 2', 'seat_rows' => 6, 'seat_cols' => 10],
+            ['id' => 3, 'name' => 'Sala 3', 'seat_rows' => 5, 'seat_cols' => 10],
+        ];
 
-        foreach ([$room1, $room2] as $room) {
-            $rows = $room->id === 1 ? 5 : 6;
-            $columns = $room->id === 1 ? 8 : 10;
+        $rooms = [];
+        foreach ($roomLayouts as $layout) {
+            $room = Sala::query()->updateOrCreate(
+                ['id' => $layout['id']],
+                [
+                    'name' => $layout['name'],
+                    'seat_rows' => $layout['seat_rows'],
+                    'seat_cols' => $layout['seat_cols'],
+                ]
+            );
 
-            for ($row = 1; $row <= $rows; $row++) {
-                for ($number = 1; $number <= $columns; $number++) {
+            for ($row = 1; $row <= $layout['seat_rows']; $row++) {
+                for ($number = 1; $number <= $layout['seat_cols']; $number++) {
                     Asiento::query()->updateOrCreate(
                         ['room_id' => $room->id, 'seat_row' => $row, 'number' => $number],
                         ['seat_type_id' => $standardSeatTypeId]
                     );
                 }
             }
+
+            $rooms[] = $room;
         }
 
-        $interstellar = Pelicula::query()->updateOrCreate(
-            ['id' => 1],
-            [
-                'title' => 'Interstellar',
-                'sinopsis' => 'Un grupo de exploradores viaja a través de un agujero de gusano.',
-                'duration' => 169,
-                'release_year' => 2014,
-                'image' => 'https://picsum.photos/seed/interstellar/400/600',
-            ]
-        );
+        $this->seedUpcomingSessions($rooms);
+    }
 
-        $dune = Pelicula::query()->updateOrCreate(
-            ['id' => 2],
-            [
-                'title' => 'Dune',
-                'sinopsis' => 'El heredero de una familia noble lucha por el control de Arrakis.',
-                'duration' => 155,
-                'release_year' => 2021,
-                'image' => 'https://picsum.photos/seed/dune/400/600',
-            ]
-        );
+    /**
+     * @param  list<Sala>  $rooms
+     */
+    private function seedUpcomingSessions(array $rooms): void
+    {
+        $movies = Pelicula::query()
+            ->orderByDesc('rating')
+            ->orderBy('id')
+            ->limit(4)
+            ->get();
+
+        if ($movies->isEmpty() || $rooms === []) {
+            return;
+        }
+
+        DB::table('booking_ticket')->delete();
+        DB::table('booking_seat')->delete();
+        DB::table('bookings')->delete();
+        Sesion::query()->delete();
 
         $spanishId = DB::table('languages')->where('code', 'es')->value('id');
+        $sessionTypes = ['2d', '3d', '4d'];
+        $startTimes = ['17:00:00', '18:15:00', '19:30:00', '20:45:00'];
 
-        Sesion::query()->updateOrCreate(['id' => 1], [
-            'movie_id' => $interstellar->id,
-            'room_id' => $room1->id,
-            'language_id' => $spanishId,
-            'start_date' => '2026-04-10',
-            'start_time' => '18:00:00',
-            'session_type' => '2d',
-        ]);
-        Sesion::query()->updateOrCreate(['id' => 2], [
-            'movie_id' => $interstellar->id,
-            'room_id' => $room1->id,
-            'language_id' => $spanishId,
-            'start_date' => '2026-04-10',
-            'start_time' => '21:30:00',
-            'session_type' => '2d',
-        ]);
-        Sesion::query()->updateOrCreate(['id' => 3], [
-            'movie_id' => $dune->id,
-            'room_id' => $room2->id,
-            'language_id' => $spanishId,
-            'start_date' => '2026-04-11',
-            'start_time' => '20:00:00',
-            'session_type' => '2d',
-        ]);
+        foreach ($movies->values() as $movieIndex => $movie) {
+            for ($slot = 0; $slot < 3; $slot++) {
+                Sesion::query()->create([
+                    'movie_id' => $movie->id,
+                    'room_id' => $rooms[$slot % count($rooms)]->id,
+                    'language_id' => $spanishId,
+                    'start_date' => now()->addDays($slot + 1)->toDateString(),
+                    'start_time' => $startTimes[$movieIndex % count($startTimes)],
+                    'session_type' => $sessionTypes[$slot],
+                ]);
+            }
+        }
     }
 }

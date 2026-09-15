@@ -63,7 +63,7 @@ class SessionsController extends Controller
             ->orderBy('start_time');
 
         if ($movieId) {
-            $query->where('movie_id', $movieId);
+            $query->where('movie_id', $movieId)->upcoming();
         }
 
         $sessions = $query->get()->map(fn (Sesion $session) => $this->mapSession($session));

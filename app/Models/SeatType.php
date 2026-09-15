@@ -11,9 +11,18 @@ class SeatType extends Model
 
     protected $fillable = [
         'name',
+        'label',
+        'price',
     ];
 
     public $timestamps = false;
+
+    protected function casts(): array
+    {
+        return [
+            'price' => 'float',
+        ];
+    }
 
     public const STANDARD = 'standard';
     public const VIP = 'vip';

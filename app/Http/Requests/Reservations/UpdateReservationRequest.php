@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Reservations;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateReservationRequest extends FormRequest
 {
@@ -14,7 +15,8 @@ class UpdateReservationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status_id' => ['required', 'integer', 'min:1', 'exists:booking_statuses,id'],
+            'status' => ['required_without:status_id', 'string', Rule::in(['confirmed', 'cancelled'])],
+            'status_id' => ['required_without:status', 'integer', 'min:1', 'exists:booking_statuses,id'],
         ];
     }
 }

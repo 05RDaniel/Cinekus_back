@@ -15,6 +15,11 @@ class Reserva extends Model
         'session_id',
         'created_at',
         'status_id',
+        'total_price',
+        'buyer_first_name',
+        'buyer_last_name',
+        'buyer_second_last_name',
+        'buyer_email',
     ];
 
     public $timestamps = false;
@@ -23,6 +28,7 @@ class Reserva extends Model
     {
         return [
             'created_at' => 'datetime',
+            'total_price' => 'float',
         ];
     }
 
