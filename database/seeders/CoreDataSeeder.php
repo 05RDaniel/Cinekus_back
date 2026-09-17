@@ -35,22 +35,22 @@ class CoreDataSeeder extends Seeder
         $standardSeatTypeId = DB::table('seat_types')->where('name', 'standard')->value('id');
 
         $admin = User::query()->updateOrCreate(
-            ['email' => 'admin@proyectocine.local'],
+            ['email' => 'admin@gmail.com'],
             [
                 'username' => 'admin',
                 'first_name' => 'Ana',
                 'last_name' => 'García',
-                'password' => 'admin123',
+                'password' => 'rino0nte05',
             ]
         );
 
         $regularUser = User::query()->updateOrCreate(
-            ['email' => 'user@proyectocine.local'],
+            ['email' => 'user@gmail.com'],
             [
                 'username' => 'user',
                 'first_name' => 'Luis',
                 'last_name' => 'Martínez',
-                'password' => 'user123',
+                'password' => 'rino0nte05',
             ]
         );
 
