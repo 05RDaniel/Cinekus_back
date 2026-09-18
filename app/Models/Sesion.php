@@ -36,6 +36,50 @@ class Sesion extends Model
         ];
     }
 
+    public const DEFAULT_DURATION_MINUTES = 120;
+
+    public static function durationMinutes(int|string|null $duration): int
+    {
+        $minutes = (int) $duration;
+
+        return $minutes > 0 ? $minutes : self::DEFAULT_DURATION_MINUTES;
+    }
+
+    public static function minutesFromTime(string $time): int
+    {
+        $parts = array_map('intval', explode(':', $time));
+
+        return ($parts[0] ?? 0) * 60 + ($parts[1] ?? 0);
+    }
+
+    public static function roomIsOccupied(
+        int $roomId,
+        string $startDate,
+        string $startTime,
+        int $durationMinutes,
+        ?int $ignoreSessionId = null
+    ): bool {
+        $newStart = self::minutesFromTime($startTime);
+        $newEnd = $newStart + max(1, $durationMinutes);
+
+        $sessions = self::query()
+            ->with('pelicula:id,duration')
+            ->where('room_id', $roomId)
+            ->whereDate('start_date', $startDate)
+            ->when($ignoreSessionId !== null, fn (Builder $query) => $query->where('id', '!=', $ignoreSessionId))
+            ->get(['id', 'movie_id', 'start_time']);
+
+        foreach ($sessions as $session) {
+            $existingStart = self::minutesFromTime((string) $session->start_time);
+            $existingEnd = $existingStart + self::durationMinutes($session->pelicula?->duration);
+            if ($newStart < $existingEnd && $existingStart < $newEnd) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function scopeUpcoming(Builder $query): Builder
     {
         $today = now()->toDateString();

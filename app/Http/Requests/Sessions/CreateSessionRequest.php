@@ -9,6 +9,8 @@ use Illuminate\Validation\Validator;
 
 class CreateSessionRequest extends FormRequest
 {
+    use ValidatesRoomAvailability;
+
     public function authorize(): bool
     {
         return true;
@@ -47,6 +49,10 @@ class CreateSessionRequest extends FormRequest
             if (!$this->filled('subtitles')) {
                 $validator->errors()->add('subtitles', 'Los subtítulos son obligatorios para sesiones que no son en español');
             }
+        });
+
+        $validator->after(function (Validator $validator): void {
+            $this->validateRoomAvailability($validator);
         });
     }
 }

@@ -23,12 +23,14 @@ class PricesController extends Controller
             foreach ($data['ticket_types'] as $row) {
                 TicketType::query()->whereKey($row['id'])->update([
                     'price' => round((float) $row['price'], 2),
+                    'price_mode' => $row['price_mode'],
                 ]);
             }
 
             foreach ($data['seat_types'] as $row) {
                 SeatType::query()->whereKey($row['id'])->update([
                     'price' => round((float) $row['price'], 2),
+                    'price_mode' => $row['price_mode'],
                 ]);
             }
         });
@@ -42,8 +44,8 @@ class PricesController extends Controller
     private function payload(): array
     {
         return [
-            'ticket_types' => TicketType::query()->orderBy('id')->get(['id', 'code', 'name', 'price']),
-            'seat_types' => SeatType::query()->orderBy('id')->get(['id', 'name', 'label', 'price']),
+            'ticket_types' => TicketType::query()->orderBy('id')->get(['id', 'code', 'name', 'price', 'price_mode']),
+            'seat_types' => SeatType::query()->orderBy('id')->get(['id', 'name', 'label', 'price', 'price_mode']),
         ];
     }
 }

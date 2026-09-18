@@ -11,6 +11,7 @@ use App\Models\SeatType;
 use App\Models\Sesion;
 use App\Models\TicketType;
 use App\Models\User;
+use App\Support\PriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -104,29 +105,37 @@ class ReservationsController extends Controller
             ], 422);
         }
 
-        $ticketTypes = TicketType::query()->whereIn('id', array_keys($ticketLines))->get()->keyBy('id');
-        if ($ticketTypes->count() !== count($ticketLines)) {
-            return response()->json(['message' => 'Tipo de entrada no válido', 'details' => null], 422);
+        $allTicketTypes = TicketType::query()->orderBy('id')->get();
+        $ticketTypes = $allTicketTypes->keyBy('id');
+        foreach (array_keys($ticketLines) as $typeId) {
+            if (!$ticketTypes->has($typeId)) {
+                return response()->json(['message' => 'Tipo de entrada no válido', 'details' => null], 422);
+            }
         }
 
         $seats = Asiento::query()->whereIn('id', $seatIds)->get(['id', 'seat_type_id']);
         $seatTypeIds = $seats->pluck('seat_type_id')->unique()->all();
         $seatTypes = SeatType::query()->whereIn('id', $seatTypeIds)->get()->keyBy('id');
 
+        $reference = PriceCalculator::ticketReferenceAmount($allTicketTypes);
         $ticketsTotal = 0.0;
+        $ticketUnitPrices = [];
         foreach ($ticketLines as $typeId => $quantity) {
-            $ticketsTotal += round((float) $ticketTypes[$typeId]->price, 2) * $quantity;
+            $unit = PriceCalculator::ticketUnit($ticketTypes->get($typeId), $reference);
+            $ticketUnitPrices[$typeId] = $unit;
+            $ticketsTotal += $unit * $quantity;
         }
 
+        $averageTicket = $ticketCount > 0 ? $ticketsTotal / $ticketCount : 0.0;
         $seatsTotal = 0.0;
         $seatPrices = [];
         foreach ($seats as $seat) {
-            $unit = round((float) ($seatTypes->get($seat->seat_type_id)?->price ?? 0), 2);
+            $unit = PriceCalculator::seatUnit($seatTypes->get($seat->seat_type_id), $averageTicket);
             $seatPrices[(int) $seat->id] = $unit;
             $seatsTotal += $unit;
         }
 
-        $totalPrice = round($ticketsTotal + $seatsTotal, 2);
+        $totalPrice = PriceCalculator::total($ticketsTotal, $seatsTotal);
 
         $firstName = trim((string) $data['first_name']);
         $lastName = trim((string) $data['last_name']);
@@ -148,7 +157,7 @@ class ReservationsController extends Controller
             $seatIds,
             $statusId,
             $ticketLines,
-            $ticketTypes,
+            $ticketUnitPrices,
             $seatPrices,
             $totalPrice,
             $firstName,
@@ -186,7 +195,7 @@ class ReservationsController extends Controller
                     'booking_id' => $reservation->id,
                     'ticket_type_id' => $typeId,
                     'quantity' => $quantity,
-                    'unit_price' => round((float) $ticketTypes[$typeId]->price, 2),
+                    'unit_price' => $ticketUnitPrices[$typeId] ?? 0,
                 ]);
             }
 

@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Prices;
 
+use App\Support\PriceCalculator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSeatTypeRequest extends FormRequest
 {
@@ -15,7 +17,8 @@ class StoreSeatTypeRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'min:1', 'max:80'],
-            'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'price' => ['required', 'numeric', 'min:-999999.99', 'max:999999.99'],
+            'price_mode' => ['required', 'string', Rule::in([PriceCalculator::MODE_AMOUNT, PriceCalculator::MODE_PERCENT])],
         ];
     }
 }

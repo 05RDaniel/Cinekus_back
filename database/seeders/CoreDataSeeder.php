@@ -117,18 +117,34 @@ class CoreDataSeeder extends Seeder
 
         $spanishId = DB::table('languages')->where('code', 'es')->value('id');
         $sessionTypes = ['2d', '3d', '4d'];
-        $startTimes = ['17:00:00', '18:15:00', '19:30:00', '20:45:00'];
+        $startTimes = ['17:00:00', '18:30:00', '20:00:00', '21:30:00'];
+        $roomCount = count($rooms);
+        $timeCount = count($startTimes);
 
         foreach ($movies->values() as $movieIndex => $movie) {
-            for ($slot = 0; $slot < 3; $slot++) {
-                Sesion::query()->create([
-                    'movie_id' => $movie->id,
-                    'room_id' => $rooms[$slot % count($rooms)]->id,
-                    'language_id' => $spanishId,
-                    'start_date' => now()->addDays($slot + 1)->toDateString(),
-                    'start_time' => $startTimes[$movieIndex % count($startTimes)],
-                    'session_type' => $sessionTypes[$slot],
-                ]);
+            $duration = Sesion::durationMinutes($movie->duration);
+
+            for ($dayOffset = 1; $dayOffset <= 3; $dayOffset++) {
+                $date = now()->addDays($dayOffset)->toDateString();
+
+                for ($attempt = 0; $attempt < $roomCount * $timeCount; $attempt++) {
+                    $room = $rooms[($movieIndex + $attempt) % $roomCount];
+                    $time = $startTimes[(int) floor($attempt / $roomCount) % $timeCount];
+
+                    if (Sesion::roomIsOccupied($room->id, $date, $time, $duration)) {
+                        continue;
+                    }
+
+                    Sesion::query()->create([
+                        'movie_id' => $movie->id,
+                        'room_id' => $room->id,
+                        'language_id' => $spanishId,
+                        'start_date' => $date,
+                        'start_time' => $time,
+                        'session_type' => $sessionTypes[$dayOffset % count($sessionTypes)],
+                    ]);
+                    break;
+                }
             }
         }
     }

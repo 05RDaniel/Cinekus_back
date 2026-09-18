@@ -13,6 +13,7 @@ class SeatType extends Model
         'name',
         'label',
         'price',
+        'price_mode',
     ];
 
     public $timestamps = false;

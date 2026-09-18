@@ -13,7 +13,7 @@ class TicketTypesController extends Controller
     public function index()
     {
         return response()->json(
-            TicketType::query()->orderBy('id')->get(['id', 'code', 'name', 'price'])
+            TicketType::query()->orderBy('id')->get(['id', 'code', 'name', 'price', 'price_mode'])
         );
     }
 
@@ -26,9 +26,10 @@ class TicketTypesController extends Controller
             'code' => UniqueSlug::make('ticket_types', 'code', $name, 'entrada'),
             'name' => $name,
             'price' => round((float) $data['price'], 2),
+            'price_mode' => $data['price_mode'],
         ]);
 
-        return response()->json($type->only(['id', 'code', 'name', 'price']), 201);
+        return response()->json($type->only(['id', 'code', 'name', 'price', 'price_mode']), 201);
     }
 
     public function destroy(int $id)

@@ -13,7 +13,7 @@ class SeatTypesController extends Controller
     public function index()
     {
         return response()->json(
-            SeatType::query()->orderBy('id')->get(['id', 'name', 'label', 'price'])
+            SeatType::query()->orderBy('id')->get(['id', 'name', 'label', 'price', 'price_mode'])
         );
     }
 
@@ -26,9 +26,10 @@ class SeatTypesController extends Controller
             'name' => UniqueSlug::make('seat_types', 'name', $label, 'asiento'),
             'label' => $label,
             'price' => round((float) $data['price'], 2),
+            'price_mode' => $data['price_mode'],
         ]);
 
-        return response()->json($type->only(['id', 'name', 'label', 'price']), 201);
+        return response()->json($type->only(['id', 'name', 'label', 'price', 'price_mode']), 201);
     }
 
     public function destroy(int $id)

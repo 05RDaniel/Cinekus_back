@@ -22,6 +22,7 @@ class TicketType extends Model
         'code',
         'name',
         'price',
+        'price_mode',
     ];
 
     public $timestamps = false;
